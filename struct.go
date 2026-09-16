@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/Spoutnil/bootdev_pokedexcli/internal/pokecache"
+	"github.com/Spountil/bootdev_pokedexcli/internal/pokecache"
 )
 
 type cliCommand struct {

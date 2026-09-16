@@ -9,7 +9,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Spoutnil/bootdev_pokedexcli/internal/pokecache"
+	"github.com/Spountil/bootdev_pokedexcli/internal/pokecache"
 )
 
 func getCommands() map[string]cliCommand {
