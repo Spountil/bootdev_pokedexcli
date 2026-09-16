@@ -7,7 +7,7 @@ import (
 
 func NewCache(interval time.Duration) *Cache {
 	c := Cache{
-		CacheMap: map[string]cacheEntry{},
+		CacheMap: map[string]CacheEntry{},
 		Interval: interval,
 		mu:       sync.RWMutex{},
 	}
@@ -20,9 +20,9 @@ func NewCache(interval time.Duration) *Cache {
 func (c *Cache) Add(key string, val []byte) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	c.CacheMap[key] = cacheEntry{
-		createdAt: time.Now(),
-		val:       val,
+	c.CacheMap[key] = CacheEntry{
+		CreatedAt: time.Now(),
+		Val:       val,
 	}
 }
 
@@ -31,7 +31,7 @@ func (c *Cache) Get(key string) ([]byte, bool) {
 	defer c.mu.RUnlock()
 	result, ok := c.CacheMap[key]
 	if ok {
-		return result.val, ok
+		return result.Val, ok
 	}
 	return []byte{}, ok
 }
@@ -44,7 +44,7 @@ func (c *Cache) reapLoop() {
 		now := time.Now()
 		c.mu.Lock()
 		for key, val := range c.CacheMap {
-			age := now.Sub(val.createdAt)
+			age := now.Sub(val.CreatedAt)
 			if age > c.Interval {
 				delete(c.CacheMap, key)
 			}

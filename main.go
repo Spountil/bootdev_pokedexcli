@@ -54,7 +54,7 @@ func commandHelp(conf *Config) error {
 }
 
 func fetchLocationAreas(conf *Config, url string) error {
-
+	var data []byte
 	result, ok := conf.Cache.CacheMap[url]
 
 	if !ok {
@@ -64,30 +64,33 @@ func fetchLocationAreas(conf *Config, url string) error {
 		}
 		defer res.Body.Close()
 
+		data, err = io.ReadAll(res.Body)
+		if err != nil {
+			return err
+		}
+		conf.Cache.CacheMap[url] = pokecache.CacheEntry{
+			CreatedAt: time.Now(),
+			Val:       data,
+		}
+
 		if res.StatusCode > 299 {
 			return fmt.Errorf("response's status not 200. Status: %d", res.StatusCode)
 		}
-
-		data, err := io.ReadAll(res.Body)
-		if err != nil {
-			return err
-		}
-
-		var locResp LocationResponse
-		err = json.Unmarshal(data, &locResp)
-		if err != nil {
-			return err
-		}
-
-		result = locResp.Results
-		conf.Next = locResp.Next
-		conf.Previous = locResp.Previous
-		conf.Cache.CacheMap[url] = result
 	} else {
-		result = result.val
+		data = result.Val
 	}
 
-	for _, loc := range result {
+	var locResp LocationResponse
+	err := json.Unmarshal(data, &locResp)
+	if err != nil {
+		return err
+	}
+
+	results := locResp.Results
+	conf.Next = locResp.Next
+	conf.Previous = locResp.Previous
+
+	for _, loc := range results {
 		fmt.Println(loc.Name)
 	}
 

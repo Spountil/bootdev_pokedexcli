@@ -5,13 +5,13 @@ import (
 	"time"
 )
 
-type cacheEntry struct {
-	createdAt time.Time
-	val       []byte
+type CacheEntry struct {
+	CreatedAt time.Time
+	Val       []byte
 }
 
 type Cache struct {
-	CacheMap map[string]cacheEntry
+	CacheMap map[string]CacheEntry
 	Interval time.Duration
 	mu       sync.RWMutex
 }
