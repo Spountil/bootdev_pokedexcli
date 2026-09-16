@@ -1,5 +1,9 @@
 package main
 
+import (
+	"github.com/Spoutnil/bootdev_pokedexcli/internal/pokecache"
+)
+
 type cliCommand struct {
 	name        string
 	description string
@@ -10,6 +14,7 @@ type Config struct {
 	commands map[string]cliCommand
 	Next     *string
 	Previous *string
+	Cache    *pokecache.Cache
 }
 
 type ShallowLocation struct {

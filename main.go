@@ -7,6 +7,9 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"time"
+
+	"github.com/Spoutnil/bootdev_pokedexcli/internal/pokecache"
 )
 
 func getCommands() map[string]cliCommand {
@@ -52,33 +55,41 @@ func commandHelp(conf *Config) error {
 
 func fetchLocationAreas(conf *Config, url string) error {
 
-	res, err := http.Get(url)
-	if err != nil {
-		return err
-	}
-	defer res.Body.Close()
+	result, ok := conf.Cache.CacheMap[url]
 
-	if res.StatusCode > 299 {
-		return fmt.Errorf("response's status not 200. Status: %d", res.StatusCode)
+	if !ok {
+		res, err := http.Get(url)
+		if err != nil {
+			return err
+		}
+		defer res.Body.Close()
+
+		if res.StatusCode > 299 {
+			return fmt.Errorf("response's status not 200. Status: %d", res.StatusCode)
+		}
+
+		data, err := io.ReadAll(res.Body)
+		if err != nil {
+			return err
+		}
+
+		var locResp LocationResponse
+		err = json.Unmarshal(data, &locResp)
+		if err != nil {
+			return err
+		}
+
+		result = locResp.Results
+		conf.Next = locResp.Next
+		conf.Previous = locResp.Previous
+		conf.Cache.CacheMap[url] = result
+	} else {
+		result = result.val
 	}
 
-	data, err := io.ReadAll(res.Body)
-	if err != nil {
-		return err
-	}
-
-	var locResp LocationResponse
-	err = json.Unmarshal(data, &locResp)
-	if err != nil {
-		return err
-	}
-
-	for _, loc := range locResp.Results {
+	for _, loc := range result {
 		fmt.Println(loc.Name)
 	}
-
-	conf.Next = locResp.Next
-	conf.Previous = locResp.Previous
 
 	return nil
 }
@@ -115,8 +126,10 @@ func commandMapb(conf *Config) error {
 }
 
 func main() {
+	const cacheTime = 1000 * time.Millisecond
 	conf := Config{
 		commands: getCommands(),
+		Cache:    pokecache.NewCache(cacheTime),
 	}
 
 	scanner := bufio.NewScanner(os.Stdin)
