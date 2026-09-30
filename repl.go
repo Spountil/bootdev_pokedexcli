@@ -199,3 +199,55 @@ func commandCatch(conf *pokeapi.Config) error {
 
 	return nil
 }
+
+func commandInspect(conf *pokeapi.Config) error {
+	result, ok := conf.Pokedex[*conf.Param]
+
+	if !ok {
+		fmt.Println("you have not caught that pokemon")
+		return nil
+	}
+
+	stats := struct {
+		hp             int
+		attack         int
+		defense        int
+		specialAttack  int
+		specialDefense int
+		speed          int
+	}{}
+
+	for _, stat := range result.Stats {
+		switch statType := stat.Stat; statType.Name {
+		case "hp":
+			stats.hp = stat.BaseStat
+		case "attack":
+			stats.attack = stat.BaseStat
+		case "defense":
+			stats.defense = stat.BaseStat
+		case "special-attack":
+			stats.specialAttack = stat.BaseStat
+		case "special-defense":
+			stats.specialDefense = stat.BaseStat
+		case "speed":
+			stats.speed = stat.BaseStat
+		}
+	}
+
+	fmt.Printf("Name: %s\n", result.Name)
+	fmt.Printf("Height: %d\n", result.Height)
+	fmt.Printf("Weight: %d\n", result.Weight)
+	fmt.Println("Stats:")
+	fmt.Printf(" -hp: %d\n", stats.hp)
+	fmt.Printf(" -attack: %d\n", stats.attack)
+	fmt.Printf(" -defense: %d\n", stats.defense)
+	fmt.Printf(" -special-attack: %d\n", stats.specialAttack)
+	fmt.Printf(" -special-defense: %d\n", stats.specialDefense)
+	fmt.Printf(" -speed: %d\n", stats.speed)
+	fmt.Println("Types:")
+	for _, pokemonType := range result.Types {
+		fmt.Printf(" -%s\n", pokemonType.Type.Name)
+	}
+
+	return nil
+}
