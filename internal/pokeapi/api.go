@@ -10,7 +10,7 @@ import (
 	"github.com/Spountil/bootdev_pokedexcli/internal/pokecache"
 )
 
-func FetchLocationAreas(conf *Config, url string) ([]byte, error) {
+func FetchApi(conf *Config, url string) ([]byte, error) {
 	var data []byte
 	result, ok := conf.Cache.CacheMap[url]
 
@@ -55,6 +55,18 @@ func MapResponse(data []byte) (LocationResponse, error) {
 func ExploreResponse(data []byte) (LocationAreaDetails, error) {
 
 	var locResp LocationAreaDetails
+
+	err := json.Unmarshal(data, &locResp)
+	if err != nil {
+		return locResp, err
+	}
+
+	return locResp, nil
+}
+
+func PokemonResponse(data []byte) (PokemonDetails, error) {
+
+	var locResp PokemonDetails
 
 	err := json.Unmarshal(data, &locResp)
 	if err != nil {

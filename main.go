@@ -15,6 +15,7 @@ func main() {
 	conf := pokeapi.Config{
 		Commands: getCommands(),
 		Cache:    pokecache.NewCache(cacheTime),
+		Pokedex:  map[string]pokeapi.PokemonDetails{},
 	}
 
 	scanner := bufio.NewScanner(os.Stdin)
@@ -28,7 +29,7 @@ func main() {
 		cmd, ok := conf.Commands[words[0]]
 
 		if len(words) > 1 {
-			conf.Location = &words[1]
+			conf.Param = &words[1]
 		}
 
 		if ok {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
 	"strings"
 
@@ -45,6 +46,16 @@ func getCommands() map[string]pokeapi.CliCommand {
 			Description: "Return a list of all the pokemon in a location",
 			Callback:    commandExplore,
 		},
+		"catch": {
+			Name:        "catch",
+			Description: "Function to catch a Pokemon passed following the command",
+			Callback:    commandCatch,
+		},
+		"inspect": {
+			Name:        "inspect",
+			Description: "Return the stats of caught Pokemons",
+			Callback:    commandInspect,
+		},
 	}
 }
 
@@ -76,7 +87,7 @@ func commandMap(conf *pokeapi.Config) error {
 
 	var locResp pokeapi.LocationResponse
 
-	data, err := pokeapi.FetchLocationAreas(conf, url)
+	data, err := pokeapi.FetchApi(conf, url)
 	if err != nil {
 		return err
 	}
@@ -106,7 +117,7 @@ func commandMapb(conf *pokeapi.Config) error {
 
 	var locResp pokeapi.LocationResponse
 
-	data, err := pokeapi.FetchLocationAreas(conf, url)
+	data, err := pokeapi.FetchApi(conf, url)
 	if err != nil {
 		return err
 	}
@@ -124,13 +135,12 @@ func commandMapb(conf *pokeapi.Config) error {
 }
 
 func commandExplore(conf *pokeapi.Config) error {
-
 	var url string
 
-	fmt.Printf("Exploring %s...\n", *conf.Location)
+	fmt.Printf("Exploring %s...\n", *conf.Param)
 
-	if len(*conf.Location) > 0 {
-		url = "https://pokeapi.co/api/v2/location-area/" + *conf.Location
+	if len(*conf.Param) > 0 {
+		url = "https://pokeapi.co/api/v2/location-area/" + *conf.Param
 	} else {
 		fmt.Println("Missing location name, try again.")
 		return nil
@@ -138,7 +148,7 @@ func commandExplore(conf *pokeapi.Config) error {
 
 	var locResp pokeapi.LocationAreaDetails
 
-	data, err := pokeapi.FetchLocationAreas(conf, url)
+	data, err := pokeapi.FetchApi(conf, url)
 	if err != nil {
 		return err
 	}
@@ -149,6 +159,42 @@ func commandExplore(conf *pokeapi.Config) error {
 	fmt.Println("Found Pokemon:")
 	for _, pokemon := range results {
 		fmt.Printf("- %s\n", pokemon.Pokemon.Name)
+	}
+
+	return nil
+}
+
+func commandCatch(conf *pokeapi.Config) error {
+
+	_, ok := conf.Pokedex[*conf.Param]
+
+	if ok {
+		fmt.Printf("%s already in the Pokedex\n", *conf.Param)
+		return nil
+	}
+
+	fmt.Printf("Throwing a Pokeball at %s...\n", *conf.Param)
+
+	url := "https://pokeapi.co/api/v2/pokemon/" + *conf.Param
+
+	var locResp pokeapi.PokemonDetails
+
+	data, err := pokeapi.FetchApi(conf, url)
+	if err != nil {
+		return err
+	}
+
+	locResp, err = pokeapi.PokemonResponse(data)
+	// the ceiling of the base exp of a Pokemon is 635, so putting the ceiling at 700 makes sens
+	baseExpCeiling := 700
+	roll := rand.Intn(baseExpCeiling)
+	baseExp := locResp.BaseExperience
+
+	if roll > baseExp {
+		fmt.Printf("%s was caught!\n", *conf.Param)
+		conf.Pokedex[*conf.Param] = locResp
+	} else {
+		fmt.Printf("%s escaped!\n", *conf.Param)
 	}
 
 	return nil
