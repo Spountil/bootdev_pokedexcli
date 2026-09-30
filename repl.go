@@ -56,6 +56,11 @@ func getCommands() map[string]pokeapi.CliCommand {
 			Description: "Return the stats of caught Pokemons",
 			Callback:    commandInspect,
 		},
+		"pokedex": {
+			Name:        "pokedex",
+			Description: "Return the Pokemon in the Pokedex",
+			Callback:    commandPokedex,
+		},
 	}
 }
 
@@ -249,5 +254,18 @@ func commandInspect(conf *pokeapi.Config) error {
 		fmt.Printf(" -%s\n", pokemonType.Type.Name)
 	}
 
+	return nil
+}
+
+func commandPokedex(conf *pokeapi.Config) error {
+	if len(conf.Pokedex) == 0 {
+		fmt.Println("Your pokedex is empty, go catch some Pokemon!")
+		return nil
+	}
+
+	fmt.Println("Your Pokedex")
+	for _, pokemon := range conf.Pokedex {
+		fmt.Printf(" - %s\n", pokemon.Name)
+	}
 	return nil
 }
